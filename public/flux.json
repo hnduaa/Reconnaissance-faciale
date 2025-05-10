@@ -1,0 +1,43 @@
+[
+    {
+        "id": "ad5f7c7bd007ca83",
+        "type": "ui_template",
+        "z": "ad0f97f190e925de",
+        "group": "f9c8b04d.453b3",
+        "name": "Flux vidéo",
+        "order": 2,
+        "width": "12",
+        "height": "7",
+        "format": "<div style=\"text-align:center;\">\n    <h3>Flux vidéo</h3>\n    <img ng-src=\"http://192.168.11.112:4747/video\" width=\"500\" height=\"440\" style=\"border:1px solid #333;\">\n    <br/>\n    <md-button class=\"md-raised md-primary\" ng-click=\"send({payload: {}})\">\n        📸 Capturer\n    </md-button>\n</div>",
+        "storeOutMessages": false,
+        "fwdInMessages": false,
+        "resendOnRefresh": false,
+        "templateScope": "local",
+        "className": "",
+        "x": 130,
+        "y": 140,
+        "wires": [
+            [
+                "a72f878f4d575f0d"
+            ]
+        ]
+    },
+    {
+        "id": "f9c8b04d.453b3",
+        "type": "ui_group",
+        "name": "Contrôle Accès",
+        "tab": "d44f1b82.72c3c8",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": false,
+        "className": ""
+    },
+    {
+        "id": "d44f1b82.72c3c8",
+        "type": "ui_tab",
+        "name": "Sécurité",
+        "icon": "security",
+        "order": 1
+    }
+]
