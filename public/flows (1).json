@@ -1,12 +1,5 @@
 [
     {
-        "id": "ad0f97f190e925de",
-        "type": "tab",
-        "label": "Système de reconnaissance faciale",
-        "disabled": false,
-        "info": "Dashboard pour système de reconnaissance faciale"
-    },
-    {
         "id": "0ba68a539a5f059d",
         "type": "mqtt in",
         "z": "ad0f97f190e925de",
@@ -58,7 +51,8 @@
         "y": 900,
         "wires": [
             [
-                "751edd2b505bf8e3"
+                "751edd2b505bf8e3",
+                "1ffbde9871692b1f"
             ],
             [
                 "f14301808b65f490",
@@ -73,10 +67,10 @@
         "id": "97d9ca3093342789",
         "type": "ui_led",
         "z": "ad0f97f190e925de",
-        "order": 3,
+        "order": 2,
         "group": "f9c8b04d.453b3",
-        "width": "1",
-        "height": "1",
+        "width": 3,
+        "height": 1,
         "label": "",
         "labelPlacement": "left",
         "labelAlignment": "left",
@@ -104,10 +98,10 @@
         "id": "0c81363af3babf58",
         "type": "ui_led",
         "z": "ad0f97f190e925de",
-        "order": 4,
+        "order": 3,
         "group": "f9c8b04d.453b3",
-        "width": "1",
-        "height": "1",
+        "width": 3,
+        "height": 1,
         "label": "",
         "labelPlacement": "right",
         "labelAlignment": "left",
@@ -163,8 +157,8 @@
         "className": "",
         "topic": "Erreur Système",
         "name": "Notification erreur",
-        "x": 1050,
-        "y": 1080,
+        "x": 1278,
+        "y": 936,
         "wires": [
             []
         ]
@@ -174,18 +168,25 @@
         "type": "function",
         "z": "ad0f97f190e925de",
         "name": "Formater pour historique",
-        "func": "// 1. Lire l'historique actuel depuis le flow context\nlet history = flow.get(\"history\") || [];\n\n// 2. Préparer la nouvelle entrée\nconst timestamp = new Date().toLocaleString();\nconst status    = msg.payload.status;\nconst identity  = msg.payload.identity || \"Inconnu\";\nconst image     = msg.payload.image;\nconst entry     = {\n  date:     timestamp,\n  identity: identity,\n  status:   status,\n  image:    image\n    ? `<img src=\"data:image/jpeg;base64,${image}\" width=\"50\">`\n    : \"Pas d'image\"\n};\n\n// 3. Ajouter la nouvelle entrée à l'historique\nhistory.push(entry);\n\n// (Optionnel) Limiter la taille de l’historique à, par exemple, 100 lignes\n// if (history.length > 100) { history.shift(); }\n\n// 4. Sauvegarder l'historique mis à jour dans le flow context\nflow.set(\"history\", history);\n\n// 5. Envoyer tout l'historique dans msg.payload pour affichage\nreturn { payload: history };\n",
-        "outputs": 1,
+        "func": "// 1. Lire l'historique actuel depuis le flow context\nlet history = flow.get(\"history\") || [];\n\n// 2. Préparer la nouvelle entrée\nconst timestamp = new Date().toLocaleString();\nconst status    = msg.payload.status;\nconst identity  = msg.payload.identity || \"Inconnu\";\nconst image     = msg.payload.image;\nconst entry     = {\n  date:     timestamp,\n  identity: identity,\n  status:   status,\n  image:    image\n    ? `<img src=\"data:image/jpeg;base64,${image}\" width=\"50\">`\n    : \"Pas d'image\"\n};\n\n// 3. Ajouter la nouvelle entrée à l'historique\nhistory.push(entry);\n\n// (Optionnel) Limiter la taille de l’historique à, par exemple, 100 lignes\n// if (history.length > 100) { history.shift(); }\n\n// 4. Sauvegarder l'historique mis à jour dans le flow context\nflow.set(\"history\", history);\n\n// 5. Préparer les sorties\n// Sortie 1 : tout l'historique pour affichage dans le dashboard\nlet out1 = { payload: history };\n\n// Sortie 2 : dernière entrée (entry) pour envoi MQTT\nlet out2 = { payload: entry };\n\n// Sortie 3 : valeur numérique pour le Gauge (0 = untrusted, 1 = trusted)\nconst numeric = (status === \"trusted\" ? 1 : 0);\nlet out3 = { payload: numeric };\n\n// 6. Retourner un tableau de 3 messages\nreturn [ out1, out2, out3 ];\n",
+        "outputs": 3,
         "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 460,
-        "y": 1090,
+        "x": 466,
+        "y": 1098,
         "wires": [
             [
                 "588ea5b92ce71d3b"
+            ],
+            [
+                "db45bef63bcd79d4"
+            ],
+            [
+                "847dcf968cf2336d",
+                "da61c3a89dffd72d"
             ]
         ]
     },
@@ -195,8 +196,9 @@
         "z": "ad0f97f190e925de",
         "group": "7834e7ab.2a9d68",
         "name": "Historique des accès",
-        "width": "",
-        "height": "",
+        "order": 1,
+        "width": 24,
+        "height": 5,
         "columns": [
             {
                 "field": "date",
@@ -241,37 +243,9 @@
         ],
         "outputs": 0,
         "cts": false,
-        "x": 700,
-        "y": 1140,
+        "x": 710,
+        "y": 1026,
         "wires": []
-    },
-    {
-        "id": "e0eb04b5cf4c64da",
-        "type": "ui_button",
-        "z": "ad0f97f190e925de",
-        "name": "Ajouter une personne",
-        "group": "3a5c6b71.1ff314",
-        "order": 1,
-        "width": "6",
-        "height": "1",
-        "passthru": false,
-        "label": "Ajouter une personne",
-        "tooltip": "",
-        "color": "",
-        "bgcolor": "",
-        "className": "",
-        "icon": "fa-user-plus",
-        "payload": "",
-        "payloadType": "str",
-        "topic": "",
-        "topicType": "str",
-        "x": 210,
-        "y": 1190,
-        "wires": [
-            [
-                "a455c863c421fb93"
-            ]
-        ]
     },
     {
         "id": "a455c863c421fb93",
@@ -279,10 +253,10 @@
         "z": "ad0f97f190e925de",
         "name": "Formulaire ajout personne",
         "label": "Ajouter une nouvelle personne",
-        "group": "3a5c6b71.1ff314",
-        "order": 2,
-        "width": "6",
-        "height": "4",
+        "group": "f9c8b04d.453b3",
+        "order": 5,
+        "width": 6,
+        "height": 1,
         "options": [
             {
                 "label": "Nom",
@@ -310,8 +284,8 @@
         "topicType": "str",
         "splitLayout": false,
         "className": "",
-        "x": 440,
-        "y": 1190,
+        "x": 436,
+        "y": 1260,
         "wires": [
             [
                 "f1edd727c710582f"
@@ -330,8 +304,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 680,
-        "y": 1190,
+        "x": 676,
+        "y": 1260,
         "wires": [
             [
                 "30fe736555bfcb94"
@@ -352,8 +326,8 @@
         "correl": "",
         "expiry": "",
         "broker": "bb21e946.5c6248",
-        "x": 920,
-        "y": 1190,
+        "x": 916,
+        "y": 1260,
         "wires": []
     },
     {
@@ -368,8 +342,8 @@
         "nl": false,
         "rap": false,
         "inputs": 0,
-        "x": 210,
-        "y": 1260,
+        "x": 198,
+        "y": 1314,
         "wires": [
             [
                 "ec4b0b29ceb7ba9c"
@@ -388,8 +362,8 @@
         "initialize": "",
         "finalize": "",
         "libs": [],
-        "x": 440,
-        "y": 1260,
+        "x": 436,
+        "y": 1330,
         "wires": [
             [
                 "eef9dad966428770"
@@ -403,13 +377,16 @@
         "position": "top right",
         "displayTime": "3",
         "highlight": "",
+        "sendall": true,
         "outputs": 0,
         "ok": "OK",
         "cancel": "",
+        "raw": false,
+        "className": "",
         "topic": "",
         "name": "Notification résultat",
-        "x": 680,
-        "y": 1260,
+        "x": 676,
+        "y": 1330,
         "wires": []
     },
     {
@@ -484,7 +461,7 @@
         "id": "6a6aa722b08dc199",
         "type": "exec",
         "z": "ad0f97f190e925de",
-        "command": "ffplay -nodisp -autoexit \"C:\\Users\\DUAA\\Desktop\\Reconnaissance faciale\\public\\alert.mp3\"",
+        "command": "ffplay -nodisp -autoexit \"C:\\Users\\DUAA\\Desktop\\Reconnaissance faciale\\public\\alert2.mp3\"",
         "addpay": "",
         "append": "",
         "useSpawn": "false",
@@ -507,8 +484,8 @@
         "name": "Simuler Mouvement",
         "group": "f9c8b04d.453b3",
         "order": 1,
-        "width": "4",
-        "height": "1",
+        "width": 6,
+        "height": 1,
         "passthru": false,
         "label": "Simuler Mouvement",
         "tooltip": "",
@@ -543,7 +520,7 @@
         "expiry": "",
         "broker": "broker1",
         "x": 390,
-        "y": 234,
+        "y": 252,
         "wires": []
     },
     {
@@ -570,9 +547,7 @@
         "x": 180,
         "y": 180,
         "wires": [
-            [
-                "8d91f14be0804a7d"
-            ]
+            []
         ]
     },
     {
@@ -602,13 +577,13 @@
         "z": "ad0f97f190e925de",
         "group": "f9c8b04d.453b3",
         "name": "Bouton Capture",
-        "order": 1,
-        "width": 0,
-        "height": 0,
-        "format": "<div ng-if=\" msg.payload.detected\"ng-else=\"!msg.payload.detected\">\n    <p style=\"color: #f44336; font-weight: bold;\">🔔 Mouvement détecté ! Vous pouvez capturer une image.</p>\n        <!-- <img src=\"http://192.168.11.112:4747/video.mjpg\" style=\"width: 100%;\" /> -->\n    <md-button class=\"md-raised md-primary\" ng-click=\"send({payload: 'capture'})\">📸 Capturer</md-button>\n</div>\n\n<div ng-if=\"!msg.payload.detected\">\n    <p style=\"color: gray; font-style: italic;\">En attente de détection de mouvement...</p>\n</div>\n",
+        "order": 7,
+        "width": 13,
+        "height": 2,
+        "format": "\n<div ng-if=\" msg.payload.detected\" >\n    <p style=\"color: #f44336; font-weight: bold;\">🔔 Mouvement détecté ! Vous pouvez capturer une image.</p>\n        <!-- <img src=\"http://192.168.11.112:4747/video.mjpg\" style=\"width: 100%;\" /> -->\n    <md-button class=\"md-raised md-primary\" ng-click=\"send({payload: 'capture'})\">📸 Capturer</md-button>\n</div>\n\n<div ng-if=\"!msg.payload.detected\">\n    <p style=\"color: gray; font-style: italic;\">En attente de détection de mouvement...</p>\n</div>",
         "storeOutMessages": true,
         "fwdInMessages": true,
-        "resendOnRefresh": true,
+        "resendOnRefresh": false,
         "templateScope": "local",
         "className": "",
         "x": 170,
@@ -689,6 +664,7 @@
         "name": "Préparer pour exec",
         "func": "// Pour Windows, il faut ajouter des guillemets autour du chemin\n// car il peut contenir des espaces\nmsg.payload = '\"' + msg.filename + '\"';\nreturn msg;",
         "outputs": 1,
+        "timeout": "",
         "noerr": 0,
         "initialize": "",
         "finalize": "",
@@ -836,6 +812,110 @@
         "wires": []
     },
     {
+        "id": "1ffbde9871692b1f",
+        "type": "exec",
+        "z": "ad0f97f190e925de",
+        "command": "ffplay -nodisp -autoexit \"C:\\Users\\DUAA\\Desktop\\Reconnaissance faciale\\public\\access-granted.mp3\"",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "Alert",
+        "x": 598,
+        "y": 810,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "847dcf968cf2336d",
+        "type": "mqtt out JSON",
+        "z": "ad0f97f190e925de",
+        "name": "",
+        "topic": "DOUAE/feeds/facial-logs",
+        "qos": "0",
+        "retain": "",
+        "broker": "c08af3dfdcf085df",
+        "ignoreempty": true,
+        "wholemsg": true,
+        "x": 736,
+        "y": 1188,
+        "wires": []
+    },
+    {
+        "id": "da61c3a89dffd72d",
+        "type": "debug",
+        "z": "ad0f97f190e925de",
+        "name": "debug 3",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 480,
+        "y": 1152,
+        "wires": []
+    },
+    {
+        "id": "db45bef63bcd79d4",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Formater pour historique",
+        "func": "// Lire les compteurs actuels depuis le flow context\nlet trustedCount = flow.get(\"trustedCount\") || 0;\nlet untrustedCount = flow.get(\"untrustedCount\") || 0;\n\n// Lire les infos actuelles\nlet status = msg.payload.status;  // \"trusted\" ou \"untrusted\"\n\n// Incrémenter les bons compteurs\nif (status === \"trusted\") {\n    trustedCount++;\n} else {\n    untrustedCount++;\n}\n\n// Sauvegarder les compteurs\nflow.set(\"trustedCount\", trustedCount);\nflow.set(\"untrustedCount\", untrustedCount);\n\n// Préparer les messages MQTT à envoyer aux deux feeds\nlet msgTrusted = {\n    topic: \"DOUAE/feeds/facial-trusted\",\n    payload: trustedCount\n};\n\nlet msgUntrusted = {\n    topic: \"DOUAE/feeds/facial-untrusted\",\n    payload: untrustedCount\n};\n\n// Retourner les deux messages pour MQTT\nreturn [msgTrusted, msgUntrusted];\n",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 758,
+        "y": 1098,
+        "wires": [
+            [
+                "849ff8b22eb3b41b"
+            ],
+            [
+                "a7f54b8e74ff6723"
+            ]
+        ]
+    },
+    {
+        "id": "a7f54b8e74ff6723",
+        "type": "mqtt out JSON",
+        "z": "ad0f97f190e925de",
+        "name": "",
+        "topic": "DOUAE/feeds/facial-untrusted",
+        "qos": "0",
+        "retain": "",
+        "broker": "c08af3dfdcf085df",
+        "ignoreempty": true,
+        "wholemsg": true,
+        "x": 1012,
+        "y": 1152,
+        "wires": []
+    },
+    {
+        "id": "849ff8b22eb3b41b",
+        "type": "mqtt out JSON",
+        "z": "ad0f97f190e925de",
+        "name": "",
+        "topic": "DOUAE/feeds/facial-trusted",
+        "qos": "0",
+        "retain": "",
+        "broker": "c08af3dfdcf085df",
+        "ignoreempty": true,
+        "wholemsg": true,
+        "x": 998,
+        "y": 1116,
+        "wires": []
+    },
+    {
         "id": "bb21e946.5c6248",
         "type": "mqtt-broker",
         "name": "Broker Local",
@@ -871,8 +951,8 @@
         "tab": "d44f1b82.72c3c8",
         "order": 1,
         "disp": true,
-        "width": "12",
-        "collapse": true,
+        "width": 24,
+        "collapse": false,
         "className": ""
     },
     {
@@ -880,18 +960,9 @@
         "type": "ui_group",
         "name": "Historique",
         "tab": "d44f1b82.72c3c8",
-        "order": 3,
-        "disp": true,
-        "width": "12"
-    },
-    {
-        "id": "3a5c6b71.1ff314",
-        "type": "ui_group",
-        "name": "Gestion",
-        "tab": "d44f1b82.72c3c8",
         "order": 2,
         "disp": true,
-        "width": "6"
+        "width": 24
     },
     {
         "id": "broker1",
@@ -918,10 +989,39 @@
         "willPayload": ""
     },
     {
+        "id": "c08af3dfdcf085df",
+        "type": "mqtt-broker",
+        "name": "Adafruit IO",
+        "broker": "io.adafruit.com",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "protocolVersion": "4",
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
         "id": "d44f1b82.72c3c8",
         "type": "ui_tab",
         "name": "Sécurité",
         "icon": "security",
-        "order": 1
+        "order": 1,
+        "disabled": false,
+        "hidden": false
     }
 ]
