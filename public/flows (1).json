@@ -1,0 +1,927 @@
+[
+    {
+        "id": "ad0f97f190e925de",
+        "type": "tab",
+        "label": "Système de reconnaissance faciale",
+        "disabled": false,
+        "info": "Dashboard pour système de reconnaissance faciale"
+    },
+    {
+        "id": "0ba68a539a5f059d",
+        "type": "mqtt in",
+        "z": "ad0f97f190e925de",
+        "name": "Résultat Reconnaissance",
+        "topic": "home/security/access_result",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "bb21e946.5c6248",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 210,
+        "y": 940,
+        "wires": [
+            [
+                "076d52e55225a9a5",
+                "a2bbbefda2f1e91e"
+            ]
+        ]
+    },
+    {
+        "id": "076d52e55225a9a5",
+        "type": "switch",
+        "z": "ad0f97f190e925de",
+        "name": "Résultat d'accès",
+        "property": "payload.status",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "trusted",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "untrusted",
+                "vt": "str"
+            },
+            {
+                "t": "eq",
+                "v": "error",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 3,
+        "x": 440,
+        "y": 900,
+        "wires": [
+            [
+                "751edd2b505bf8e3"
+            ],
+            [
+                "f14301808b65f490",
+                "03ec1f5b86cff498"
+            ],
+            [
+                "bba00abdbc0492a3"
+            ]
+        ]
+    },
+    {
+        "id": "97d9ca3093342789",
+        "type": "ui_led",
+        "z": "ad0f97f190e925de",
+        "order": 3,
+        "group": "f9c8b04d.453b3",
+        "width": "1",
+        "height": "1",
+        "label": "",
+        "labelPlacement": "left",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#008000",
+                "value": "1",
+                "valueType": "num"
+            },
+            {
+                "color": "#c1c1c1",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "LED Verte",
+        "x": 1170,
+        "y": 820,
+        "wires": []
+    },
+    {
+        "id": "0c81363af3babf58",
+        "type": "ui_led",
+        "z": "ad0f97f190e925de",
+        "order": 4,
+        "group": "f9c8b04d.453b3",
+        "width": "1",
+        "height": "1",
+        "label": "",
+        "labelPlacement": "right",
+        "labelAlignment": "left",
+        "colorForValue": [
+            {
+                "color": "#ff0000",
+                "value": "true",
+                "valueType": "bool"
+            },
+            {
+                "color": "#c1c1c1",
+                "value": "false",
+                "valueType": "bool"
+            }
+        ],
+        "allowColorForValueInMessage": false,
+        "shape": "circle",
+        "showGlow": true,
+        "name": "LED Rouge",
+        "x": 1090,
+        "y": 880,
+        "wires": []
+    },
+    {
+        "id": "1c98c5a3a994ccb0",
+        "type": "e-mail",
+        "z": "ad0f97f190e925de",
+        "server": "smtp.gmail.com",
+        "port": "465",
+        "authtype": "BASIC",
+        "saslformat": false,
+        "token": "oauth2Response.access_token",
+        "secure": true,
+        "tls": true,
+        "name": "elhannach.douae@etu.uae.ac.ma",
+        "dname": "Alerte visage non autorisé!",
+        "x": 1120,
+        "y": 980,
+        "wires": []
+    },
+    {
+        "id": "bba00abdbc0492a3",
+        "type": "ui_toast",
+        "z": "ad0f97f190e925de",
+        "position": "dialog",
+        "displayTime": "3",
+        "highlight": "red",
+        "sendall": true,
+        "outputs": 1,
+        "ok": "OK",
+        "cancel": "",
+        "raw": false,
+        "className": "",
+        "topic": "Erreur Système",
+        "name": "Notification erreur",
+        "x": 1050,
+        "y": 1080,
+        "wires": [
+            []
+        ]
+    },
+    {
+        "id": "a2bbbefda2f1e91e",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Formater pour historique",
+        "func": "// 1. Lire l'historique actuel depuis le flow context\nlet history = flow.get(\"history\") || [];\n\n// 2. Préparer la nouvelle entrée\nconst timestamp = new Date().toLocaleString();\nconst status    = msg.payload.status;\nconst identity  = msg.payload.identity || \"Inconnu\";\nconst image     = msg.payload.image;\nconst entry     = {\n  date:     timestamp,\n  identity: identity,\n  status:   status,\n  image:    image\n    ? `<img src=\"data:image/jpeg;base64,${image}\" width=\"50\">`\n    : \"Pas d'image\"\n};\n\n// 3. Ajouter la nouvelle entrée à l'historique\nhistory.push(entry);\n\n// (Optionnel) Limiter la taille de l’historique à, par exemple, 100 lignes\n// if (history.length > 100) { history.shift(); }\n\n// 4. Sauvegarder l'historique mis à jour dans le flow context\nflow.set(\"history\", history);\n\n// 5. Envoyer tout l'historique dans msg.payload pour affichage\nreturn { payload: history };\n",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 460,
+        "y": 1090,
+        "wires": [
+            [
+                "588ea5b92ce71d3b"
+            ]
+        ]
+    },
+    {
+        "id": "588ea5b92ce71d3b",
+        "type": "ui_table",
+        "z": "ad0f97f190e925de",
+        "group": "7834e7ab.2a9d68",
+        "name": "Historique des accès",
+        "width": "",
+        "height": "",
+        "columns": [
+            {
+                "field": "date",
+                "title": "Date/Heure",
+                "width": "30%",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "identity",
+                "title": "Identité",
+                "width": "20%",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "status",
+                "title": "Résultat",
+                "width": "20%",
+                "align": "left",
+                "formatter": "plaintext",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            },
+            {
+                "field": "image",
+                "title": "Capture",
+                "width": "10%",
+                "align": "center",
+                "formatter": "html",
+                "formatterParams": {
+                    "target": "_blank"
+                }
+            }
+        ],
+        "outputs": 0,
+        "cts": false,
+        "x": 700,
+        "y": 1140,
+        "wires": []
+    },
+    {
+        "id": "e0eb04b5cf4c64da",
+        "type": "ui_button",
+        "z": "ad0f97f190e925de",
+        "name": "Ajouter une personne",
+        "group": "3a5c6b71.1ff314",
+        "order": 1,
+        "width": "6",
+        "height": "1",
+        "passthru": false,
+        "label": "Ajouter une personne",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "fa-user-plus",
+        "payload": "",
+        "payloadType": "str",
+        "topic": "",
+        "topicType": "str",
+        "x": 210,
+        "y": 1190,
+        "wires": [
+            [
+                "a455c863c421fb93"
+            ]
+        ]
+    },
+    {
+        "id": "a455c863c421fb93",
+        "type": "ui_form",
+        "z": "ad0f97f190e925de",
+        "name": "Formulaire ajout personne",
+        "label": "Ajouter une nouvelle personne",
+        "group": "3a5c6b71.1ff314",
+        "order": 2,
+        "width": "6",
+        "height": "4",
+        "options": [
+            {
+                "label": "Nom",
+                "value": "name",
+                "type": "text",
+                "required": true,
+                "rows": null
+            },
+            {
+                "label": "Description",
+                "value": "description",
+                "type": "text",
+                "required": false,
+                "rows": null
+            }
+        ],
+        "formValue": {
+            "name": "",
+            "description": ""
+        },
+        "payload": "",
+        "submit": "Ajouter",
+        "cancel": "Annuler",
+        "topic": "",
+        "topicType": "str",
+        "splitLayout": false,
+        "className": "",
+        "x": 440,
+        "y": 1190,
+        "wires": [
+            [
+                "f1edd727c710582f"
+            ]
+        ]
+    },
+    {
+        "id": "f1edd727c710582f",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Préparer requête ajout",
+        "func": "// Ajouter le mode de capture\nmsg.payload.capture_mode = \"auto\";\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 680,
+        "y": 1190,
+        "wires": [
+            [
+                "30fe736555bfcb94"
+            ]
+        ]
+    },
+    {
+        "id": "30fe736555bfcb94",
+        "type": "mqtt out",
+        "z": "ad0f97f190e925de",
+        "name": "Publier demande ajout",
+        "topic": "home/security/add_face",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "bb21e946.5c6248",
+        "x": 920,
+        "y": 1190,
+        "wires": []
+    },
+    {
+        "id": "4630285205cfeb9f",
+        "type": "mqtt in",
+        "z": "ad0f97f190e925de",
+        "name": "Résultat ajout visage",
+        "topic": "home/security/add_face_result",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "bb21e946.5c6248",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 210,
+        "y": 1260,
+        "wires": [
+            [
+                "ec4b0b29ceb7ba9c"
+            ]
+        ]
+    },
+    {
+        "id": "ec4b0b29ceb7ba9c",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Traiter résultat",
+        "func": "// Préparer le message pour la notification\nconst success = msg.payload.success;\nconst message = typeof msg.payload.message === 'object' ? \n               msg.payload.message.message : \n               msg.payload.message;\n\n// Définir le style de notification selon résultat\nif (success) {\n    msg.topic = \"✅ Succès\";\n    msg.highlight = \"green\";\n} else {\n    msg.topic = \"❌ Erreur\";\n    msg.highlight = \"red\";\n}\n\nmsg.payload = message;\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 440,
+        "y": 1260,
+        "wires": [
+            [
+                "eef9dad966428770"
+            ]
+        ]
+    },
+    {
+        "id": "eef9dad966428770",
+        "type": "ui_toast",
+        "z": "ad0f97f190e925de",
+        "position": "top right",
+        "displayTime": "3",
+        "highlight": "",
+        "outputs": 0,
+        "ok": "OK",
+        "cancel": "",
+        "topic": "",
+        "name": "Notification résultat",
+        "x": 680,
+        "y": 1260,
+        "wires": []
+    },
+    {
+        "id": "f14301808b65f490",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Gérer LED et buzzer",
+        "func": "// LED ON → Sortie 1\nlet ledOn = { payload: true };\n\n// Son → Sortie 2\nlet soundTrigger = { payload: null };\n\n\nnode.send([ledOn, soundTrigger]);\n\n// Éteindre LED après 5s\nsetTimeout(() => {\n    let ledOff = { payload: false };\n    node.send([ledOff, null, null]);\n}, 5000);\n\nreturn null;\n",
+        "outputs": 2,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 780,
+        "y": 880,
+        "wires": [
+            [
+                "0c81363af3babf58"
+            ],
+            [
+                "6a6aa722b08dc199"
+            ]
+        ]
+    },
+    {
+        "id": "03ec1f5b86cff498",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Préparer email alerte",
+        "func": "// --- INFOS DE L'ALERTE ---\nconst identity = msg.payload.identity || \"Inconnu\";\nconst timestamp = new Date().toLocaleString();\n\n// Variables pour traiter l'image\nlet imageAttachment = null;\n\n// --- VÉRIFICATION DE L'IMAGE ---\n// Vérifier où se trouve l'image dans le message\nif (msg.payload.image) {\n    // Si l'image est directement dans msg.payload.image\n    imageAttachment = msg.payload.image;\n} else if (msg.image) {\n    // Si l'image est dans msg.image\n    imageAttachment = msg.image;\n} else if (typeof msg.payload === 'object' && msg.payload.hasOwnProperty('payload') && msg.payload.payload.image) {\n    // Si l'image est dans msg.payload.payload.image (message imbriqué)\n    imageAttachment = msg.payload.payload.image;\n}\n\n// --- CONSTRUCTION DU HTML ---\nmsg.topic = \"⚠️ ALERTE SÉCURITÉ - Accès non autorisé\";\nmsg.payload = `\n<!DOCTYPE html>\n<html lang=\"fr\">\n<head><meta charset=\"UTF-8\">\n  <style>\n    body { font-family: Arial, sans-serif; background: #f4f4f9; padding: 20px; color: #333; }\n    h2 { color: #e74c3c; }\n    .alert { background: #ffcccc; padding: 10px; border-radius: 5px; }\n    .footer { font-size: 12px; color: #888; margin-top: 20px; }\n  </style>\n</head>\n<body>\n  <h2>Alerte de sécurité</h2>\n  <div class=\"alert\">\n    <p><strong>Une personne non autorisée a été détectée.</strong></p>\n    <p><strong>Date/heure :</strong> ${timestamp}</p>\n    <p><strong>Identité :</strong> ${identity}</p>\n  </div>\n  <p>Une image est jointe à cet email.</p>\n  <p class=\"footer\"><em>Cet email a été généré automatiquement par le système de sécurité.</em></p>\n</body>\n</html>\n`;\n\n// --- PRÉPARATION DE LA PIÈCE JOINTE ---\nif (imageAttachment) {\n    try {\n        // Vérifier si l'image est déjà un Buffer ou une chaîne Base64\n        let imageBuffer;\n        if (Buffer.isBuffer(imageAttachment)) {\n            imageBuffer = imageAttachment;\n        } else {\n            // Essayer de convertir la chaîne Base64 en Buffer\n            imageBuffer = Buffer.from(imageAttachment, \"base64\");\n        }\n\n        // Générer un nom de fichier cohérent\n        const safeTs = timestamp.replace(/[\\/:\\s,]/g, \"_\");\n        const filename = `alerte_${safeTs}.jpg`;\n\n        // Ajouter la pièce jointe\n        msg.attachments = [{\n            filename: filename,\n            content: imageBuffer,\n            contentType: \"image/jpeg\"\n        }];\n\n        // Ajouter un message de débogage\n        node.status({ fill: \"green\", shape: \"dot\", text: \"Image jointe ajoutée\" });\n    } catch (error) {\n        // En cas d'erreur, ajouter un message dans les logs\n        node.error(\"Erreur lors du traitement de l'image: \" + error.message, msg);\n        node.status({ fill: \"red\", shape: \"ring\", text: \"Erreur avec l'image\" });\n    }\n} else {\n    // Pas d'image trouvée\n    node.status({ fill: \"yellow\", shape: \"ring\", text: \"Aucune image trouvée\" });\n}\n\n// Retourner le message vers le nœud Email\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 880,
+        "y": 960,
+        "wires": [
+            [
+                "1c98c5a3a994ccb0"
+            ]
+        ]
+    },
+    {
+        "id": "751edd2b505bf8e3",
+        "type": "trigger",
+        "z": "ad0f97f190e925de",
+        "name": "",
+        "op1": "1",
+        "op2": "0",
+        "op1type": "num",
+        "op2type": "num",
+        "duration": "5000",
+        "extend": false,
+        "overrideDelay": false,
+        "units": "ms",
+        "reset": "",
+        "bytopic": "all",
+        "topic": "topic",
+        "outputs": 1,
+        "x": 780,
+        "y": 820,
+        "wires": [
+            [
+                "97d9ca3093342789"
+            ]
+        ]
+    },
+    {
+        "id": "6a6aa722b08dc199",
+        "type": "exec",
+        "z": "ad0f97f190e925de",
+        "command": "ffplay -nodisp -autoexit \"C:\\Users\\DUAA\\Desktop\\Reconnaissance faciale\\public\\alert.mp3\"",
+        "addpay": "",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "Alert",
+        "x": 1110,
+        "y": 920,
+        "wires": [
+            [],
+            [],
+            []
+        ]
+    },
+    {
+        "id": "b9aea2516c4976ac",
+        "type": "ui_button",
+        "z": "ad0f97f190e925de",
+        "name": "Simuler Mouvement",
+        "group": "f9c8b04d.453b3",
+        "order": 1,
+        "width": "4",
+        "height": "1",
+        "passthru": false,
+        "label": "Simuler Mouvement",
+        "tooltip": "",
+        "color": "",
+        "bgcolor": "",
+        "className": "",
+        "icon": "fa-walking",
+        "payload": "{\"detected\":true}",
+        "payloadType": "json",
+        "topic": "home/security/mouvement",
+        "topicType": "str",
+        "x": 116,
+        "y": 252,
+        "wires": [
+            [
+                "8d91f14be0804a7d"
+            ]
+        ]
+    },
+    {
+        "id": "8d91f14be0804a7d",
+        "type": "mqtt out",
+        "z": "ad0f97f190e925de",
+        "name": "Publier détection mouvement",
+        "topic": "home/security/mouvement",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "broker1",
+        "x": 390,
+        "y": 234,
+        "wires": []
+    },
+    {
+        "id": "df57e0055fa74811",
+        "type": "inject",
+        "z": "ad0f97f190e925de",
+        "name": "Reset mouvement",
+        "props": [
+            {
+                "p": "payload"
+            },
+            {
+                "p": "topic",
+                "vt": "str"
+            }
+        ],
+        "repeat": "",
+        "crontab": "",
+        "once": false,
+        "onceDelay": 0.1,
+        "topic": "home/security/mouvement",
+        "payload": "{\"detected\":false}",
+        "payloadType": "json",
+        "x": 180,
+        "y": 180,
+        "wires": [
+            [
+                "8d91f14be0804a7d"
+            ]
+        ]
+    },
+    {
+        "id": "29e9cd05fb2aeab1",
+        "type": "mqtt in",
+        "z": "ad0f97f190e925de",
+        "name": "Ecoute Mouvement",
+        "topic": "home/security/mouvement",
+        "qos": "0",
+        "datatype": "json",
+        "broker": "broker1",
+        "nl": false,
+        "rap": false,
+        "inputs": 0,
+        "x": 126,
+        "y": 378,
+        "wires": [
+            [
+                "e729576bc4231715",
+                "73a5ab97c9f93c05"
+            ]
+        ]
+    },
+    {
+        "id": "e729576bc4231715",
+        "type": "ui_template",
+        "z": "ad0f97f190e925de",
+        "group": "f9c8b04d.453b3",
+        "name": "Bouton Capture",
+        "order": 1,
+        "width": 0,
+        "height": 0,
+        "format": "<div ng-if=\" msg.payload.detected\"ng-else=\"!msg.payload.detected\">\n    <p style=\"color: #f44336; font-weight: bold;\">🔔 Mouvement détecté ! Vous pouvez capturer une image.</p>\n        <!-- <img src=\"http://192.168.11.112:4747/video.mjpg\" style=\"width: 100%;\" /> -->\n    <md-button class=\"md-raised md-primary\" ng-click=\"send({payload: 'capture'})\">📸 Capturer</md-button>\n</div>\n\n<div ng-if=\"!msg.payload.detected\">\n    <p style=\"color: gray; font-style: italic;\">En attente de détection de mouvement...</p>\n</div>\n",
+        "storeOutMessages": true,
+        "fwdInMessages": true,
+        "resendOnRefresh": true,
+        "templateScope": "local",
+        "className": "",
+        "x": 170,
+        "y": 468,
+        "wires": [
+            [
+                "777119ddbfbca739"
+            ]
+        ]
+    },
+    {
+        "id": "777119ddbfbca739",
+        "type": "switch",
+        "z": "ad0f97f190e925de",
+        "name": "Check capture",
+        "property": "payload",
+        "propertyType": "msg",
+        "rules": [
+            {
+                "t": "eq",
+                "v": "capture",
+                "vt": "str"
+            }
+        ],
+        "checkall": "true",
+        "repair": false,
+        "outputs": 1,
+        "x": 154,
+        "y": 558,
+        "wires": [
+            [
+                "c987e5e0b2e66bc3"
+            ]
+        ]
+    },
+    {
+        "id": "c987e5e0b2e66bc3",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Gen timestamp + filename",
+        "func": "let now = new Date();\nlet ts = now.toISOString().replace(/[-:.TZ]/g, \"\");\n// Chemin absolu pour Windows\nlet filename = \"C:\\\\Users\\\\DUAA\\\\Desktop\\\\Reconnaissance faciale\\\\captures\\\\capture_\" + ts + \".jpg\";\nmsg.filename = filename;\nmsg.timestamp = now.toISOString();\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 192,
+        "y": 648,
+        "wires": [
+            [
+                "ba16042a7ebc2dae",
+                "63237f1dfacf864b"
+            ]
+        ]
+    },
+    {
+        "id": "ba16042a7ebc2dae",
+        "type": "debug",
+        "z": "ad0f97f190e925de",
+        "name": "filename généré",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "filename",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 460,
+        "y": 540,
+        "wires": []
+    },
+    {
+        "id": "63237f1dfacf864b",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Préparer pour exec",
+        "func": "// Pour Windows, il faut ajouter des guillemets autour du chemin\n// car il peut contenir des espaces\nmsg.payload = '\"' + msg.filename + '\"';\nreturn msg;",
+        "outputs": 1,
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 468,
+        "y": 684,
+        "wires": [
+            [
+                "38c280ed83659dab"
+            ]
+        ]
+    },
+    {
+        "id": "38c280ed83659dab",
+        "type": "exec",
+        "z": "ad0f97f190e925de",
+        "command": "ffmpeg -y -i http://192.168.11.112:4747/video -vframes 1 ",
+        "addpay": "payload",
+        "append": "",
+        "useSpawn": "false",
+        "timer": "",
+        "winHide": false,
+        "oldrc": false,
+        "name": "Capture image via ffmpeg",
+        "x": 686,
+        "y": 612,
+        "wires": [
+            [
+                "fbb87a3a5224e49a"
+            ],
+            [
+                "08fe5fe2051212f2"
+            ],
+            [
+                "4f6709c35cc8bb0b"
+            ]
+        ]
+    },
+    {
+        "id": "fbb87a3a5224e49a",
+        "type": "debug",
+        "z": "ad0f97f190e925de",
+        "name": "stdout ffmpeg",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 838,
+        "y": 486,
+        "wires": []
+    },
+    {
+        "id": "08fe5fe2051212f2",
+        "type": "debug",
+        "z": "ad0f97f190e925de",
+        "name": "stderr ffmpeg",
+        "active": true,
+        "tosidebar": true,
+        "console": true,
+        "tostatus": false,
+        "complete": "payload",
+        "targetType": "msg",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 892,
+        "y": 522,
+        "wires": []
+    },
+    {
+        "id": "4f6709c35cc8bb0b",
+        "type": "file in",
+        "z": "ad0f97f190e925de",
+        "name": "Lire image",
+        "filename": "filename",
+        "filenameType": "msg",
+        "format": "",
+        "chunk": false,
+        "sendError": false,
+        "encoding": "binary",
+        "allProps": false,
+        "x": 934,
+        "y": 612,
+        "wires": [
+            [
+                "f7feba454529a98c"
+            ]
+        ]
+    },
+    {
+        "id": "f7feba454529a98c",
+        "type": "function",
+        "z": "ad0f97f190e925de",
+        "name": "Encode image base64",
+        "func": "msg.image_data = msg.payload.toString('base64');\nmsg.payload = {\n    timestamp: msg.timestamp,\n    image_path: msg.filename,\n    image_data: msg.image_data\n};\nreturn msg;",
+        "outputs": 1,
+        "timeout": "",
+        "noerr": 0,
+        "initialize": "",
+        "finalize": "",
+        "libs": [],
+        "x": 928,
+        "y": 702,
+        "wires": [
+            [
+                "c0866889bd7a2efc"
+            ]
+        ]
+    },
+    {
+        "id": "c0866889bd7a2efc",
+        "type": "mqtt out",
+        "z": "ad0f97f190e925de",
+        "name": "MQTT → analyze_image",
+        "topic": "home/security/analyze_image",
+        "qos": "0",
+        "retain": "false",
+        "respTopic": "",
+        "contentType": "",
+        "userProps": "",
+        "correl": "",
+        "expiry": "",
+        "broker": "broker1",
+        "x": 1172,
+        "y": 648,
+        "wires": []
+    },
+    {
+        "id": "73a5ab97c9f93c05",
+        "type": "debug",
+        "z": "ad0f97f190e925de",
+        "name": "debug 1",
+        "active": true,
+        "tosidebar": true,
+        "console": false,
+        "tostatus": false,
+        "complete": "false",
+        "statusVal": "",
+        "statusType": "auto",
+        "x": 332,
+        "y": 342,
+        "wires": []
+    },
+    {
+        "id": "bb21e946.5c6248",
+        "type": "mqtt-broker",
+        "name": "Broker Local",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": 4,
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "birthMsg": {},
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "closeMsg": {},
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": "",
+        "willMsg": {},
+        "userProps": "",
+        "sessionExpiry": ""
+    },
+    {
+        "id": "f9c8b04d.453b3",
+        "type": "ui_group",
+        "name": "Contrôle Accès",
+        "tab": "d44f1b82.72c3c8",
+        "order": 1,
+        "disp": true,
+        "width": "12",
+        "collapse": true,
+        "className": ""
+    },
+    {
+        "id": "7834e7ab.2a9d68",
+        "type": "ui_group",
+        "name": "Historique",
+        "tab": "d44f1b82.72c3c8",
+        "order": 3,
+        "disp": true,
+        "width": "12"
+    },
+    {
+        "id": "3a5c6b71.1ff314",
+        "type": "ui_group",
+        "name": "Gestion",
+        "tab": "d44f1b82.72c3c8",
+        "order": 2,
+        "disp": true,
+        "width": "6"
+    },
+    {
+        "id": "broker1",
+        "type": "mqtt-broker",
+        "name": "Broker Local",
+        "broker": "localhost",
+        "port": "1883",
+        "clientid": "",
+        "autoConnect": true,
+        "usetls": false,
+        "compatmode": false,
+        "protocolVersion": 4,
+        "keepalive": "60",
+        "cleansession": true,
+        "autoUnsubscribe": true,
+        "birthTopic": "",
+        "birthQos": "0",
+        "birthPayload": "",
+        "closeTopic": "",
+        "closeQos": "0",
+        "closePayload": "",
+        "willTopic": "",
+        "willQos": "0",
+        "willPayload": ""
+    },
+    {
+        "id": "d44f1b82.72c3c8",
+        "type": "ui_tab",
+        "name": "Sécurité",
+        "icon": "security",
+        "order": 1
+    }
+]
